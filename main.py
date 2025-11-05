@@ -6,50 +6,74 @@ cur = con.cursor()
 maxWidthPerCol=10
 
 def createTable():
+    """
+    Creates required tables, namely books and authors.
+    We kept them in 2 different tables so that we can store multiple authors for the same book.
+    """
     cur.execute("""
         create table 
             books(
-            book_id integer primary key,
-            title text,
-            genre text,
-            language text,
-            author_id integer,
-            price float,
-            publish_year date,
-            added_date date,
-            stocks integer,
-            status text)
+                book_id integer primary key autoincrement,
+                title text,
+                genre text,
+                language text,
+                price float,
+                publish_year date,
+                added_date date,
+                stocks integer,
+                status text
+            )
     """)
 
-def addData():
-    # the data is AI generated :
     cur.execute("""
-    INSERT INTO books (book_id, title, genre, language, author_id, price, publish_year, added_date, stocks, status)
+    create table
+        authors(
+            book_id integer,
+            name text,
+            foreign key (book_id) references books(book_id)
+        )
+    """)
+
+
+def addData():
+    """
+    Adds some data so that we can test these functions. NOT TO BE INCLUDED IN THE FINAL PROJECT,
+    ONLY FOR TESTING PURPOSES
+    And the prices are in USD, shouldn't be a problem though, cause its only for testing anyways
+    """
+
+    # the data is AI generated, so it could be wrong, but who cares
+    cur.execute("""
+    INSERT INTO books (title, genre, language, price, publish_year, added_date, stocks, status)
     VALUES
-    (1, 'To Kill a Mockingbird', 'Fiction', 'English', 1, 12.99, '1960-07-11', '2025-11-01', 10, 'Available'),
-    (2, '1984', 'Dystopian', 'English', 2, 10.50, '1949-06-08', '2025-11-01', 8, 'Available'),
-    (3, 'The Great Gatsby', 'Classic', 'English', 3, 11.20, '1925-04-10', '2025-11-01', 6, 'Available'),
-    (4, 'One Hundred Years of Solitude', 'Magical Realism', 'Spanish', 4, 14.80, '1967-06-05', '2025-11-01', 5, 'Available'),
-    (5, 'The Catcher in the Rye', 'Classic', 'English', 5, 9.99, '1951-07-16', '2025-11-01', 4, 'Available'),
-    (6, 'Pride and Prejudice', 'Romance', 'English', 6, 8.50, '1813-01-28', '2025-11-01', 12, 'Available'),
-    (7, 'The Hobbit', 'Fantasy', 'English', 7, 13.75, '1937-09-21', '2025-11-01', 15, 'Available'),
-    (8, 'The Alchemist', 'Adventure', 'Portuguese', 8, 10.00, '1988-04-15', '2025-11-01', 7, 'Available'),
-    (9, 'Les Misérables', 'Historical Fiction', 'French', 9, 15.90, '1862-03-30', '2025-11-01', 3, 'Available'),
-    (10, 'Crime and Punishment', 'Psychological Fiction', 'Russian', 10, 13.40, '1866-01-01', '2025-11-01', 5, 'Available'),
-    (11, 'The Da Vinci Code', 'Thriller', 'English', 11, 16.20, '2003-03-18', '2025-11-01', 9, 'Available'),
-    (12, 'The Kite Runner', 'Drama', 'English', 12, 11.80, '2003-05-29', '2025-11-01', 10, 'Available'),
-    (13, 'Sapiens: A Brief History of Humankind', 'Non-Fiction', 'English', 13, 18.99, '2011-06-04', '2025-11-01', 6, 'Available'),
-    (14, 'Inferno', 'Thriller', 'English', 11, 14.00, '2013-05-14', '2025-11-01', 7, 'Available'),
-    (15, 'The Book Thief', 'Historical Fiction', 'English', 14, 12.50, '2005-03-14', '2025-11-01', 8, 'Available'),
-    (16, 'The Little Prince', 'Children', 'French', 15, 7.80, '1943-04-06', '2025-11-01', 10, 'Available'),
-    (17, 'A Game of Thrones', 'Fantasy', 'English', 16, 15.00, '1996-08-06', '2025-11-01', 5, 'Available'),
-    (18, 'The Subtle Art of Not Giving a F*ck', 'Self-help', 'English', 17, 12.00, '2016-09-13', '2025-11-01', 10, 'Available'),
-    (19, 'Thinking, Fast and Slow', 'Psychology', 'English', 18, 14.99, '2011-10-25', '2025-11-01', 8, 'Available'),
-    (20, 'Norwegian Wood', 'Romance', 'Japanese', 19, 13.50, '1987-09-04', '2025-11-01', 6, 'Available');
+    ('To Kill a Mockingbird', 'Fiction', 'English',  12.99, '1960-07-11', '2025-11-01', 10, 'Available'),
+    ('1984', 'Dystopian', 'English',  10.50, '1949-06-08', '2025-11-01', 8, 'Available'),
+    ('The Great Gatsby', 'Classic', 'English',  11.20, '1925-04-10', '2025-11-01', 6, 'Available'),
+    ('One Hundred Years of Solitude', 'Magical Realism', 'Spanish',  14.80, '1967-06-05', '2025-11-01', 5, 'Available'),
+    ('The Catcher in the Rye', 'Classic', 'English', 9.99, '1951-07-16', '2025-11-01', 4, 'Available'),
+    ('Pride and Prejudice', 'Romance', 'English',  8.50, '1813-01-28', '2025-11-01', 12, 'Available'),
+    ('The Hobbit', 'Fantasy', 'English',  13.75, '1937-09-21', '2025-11-01', 15, 'Available'),
+    ('The Alchemist', 'Adventure', 'Portuguese',  10.00, '1988-04-15', '2025-11-01', 7, 'Available'),
+    ('Les Misérables', 'Historical Fiction', 'French',  15.90, '1862-03-30', '2025-11-01', 3, 'Available'),
+    ('Crime and Punishment', 'Psychological Fiction', 'Russian',  13.40, '1866-01-01', '2025-11-01', 5, 'Available'),
+    ('The Da Vinci Code', 'Thriller', 'English',  16.20, '2003-03-18', '2025-11-01', 9, 'Available'),
+    ('The Kite Runner', 'Drama', 'English',  11.80, '2003-05-29', '2025-11-01', 10, 'Available'),
+    ('Sapiens: A Brief History of Humankind', 'Non-Fiction', 'English', 18.99, '2011-06-04', '2025-11-01', 6, 'Available'),
+    ('Inferno', 'Thriller', 'English', 14.00, '2013-05-14', '2025-11-01', 7, 'Available'),
+    ('The Book Thief', 'Historical Fiction', 'English', 12.50, '2005-03-14', '2025-11-01', 8, 'Available'),
+    ('The Little Prince', 'Children', 'French', 7.80, '1943-04-06', '2025-11-01', 10, 'Available'),
+    ('A Game of Thrones', 'Fantasy', 'English', 15.00, '1996-08-06', '2025-11-01', 5, 'Available'),
+    ('Thinking, Fast and Slow', 'Psychology', 'English', 14.99, '2011-10-25', '2025-11-01', 8, 'Available'),
+    ('Norwegian Wood', 'Romance', 'Japanese', 13.50, '1987-09-04', '2025-11-01', 6, 'Available');
                 """)
     con.commit()
 
 def printTable(data:list,cols=[],trimData=True):
+    """
+    if trimData is not set to False explicitly, it trims the column width so that everything is visible in the screen.
+    This function basically just prints whatever data is passed to it, in the form of a table that we see in SQL.
+    It uses the tabulate module to accomplish that.
+    """
     newData=[]
     if(trimData):
         for row in data:
@@ -57,30 +81,93 @@ def printTable(data:list,cols=[],trimData=True):
             for col in row:
                 newRow.append(str(col)[:maxWidthPerCol])
             newData.append(newRow)
-    # print(newData)
 
     if(len(cols)==0):
         for col in cur.description:
             cols.append(col[0])
-    # print(cols)
     print(tabulate(newData,headers=cols,tablefmt="grid"))
 
-def addRow(tableName,data:list): # here "data" is supposed to be a list of tuples
-    dataPart=""
-    for d in data:
-        dataPart+=str(d)+"\n"
-    con.execute(f"""
-        insert into {tableName} values
-        {dataPart}
-    """)
+def addBook(data:list,authors:list): 
+    """
+    This function adds a new book to the "books" table.
+    It takes all the data for a new row as a list, and adds that to the "books" table.
+    Additionally, it also takes an authors list, and for each author it creates a new entry in the "authors" table which use the book_id column of "books" as a foreign key.
+    """
+    cur.execute("""
+        insert into books (title, genre, language, price, publish_year, added_date, stocks, status)
+        values
+        (?,?,?,?,?,?,?,?)
+    """,data)
+
+    bookId=cur.lastrowid
+
+    for author in authors:
+        cur.execute("""
+            insert into authors (book_id, name)
+            values 
+            (?,?)
+        """,(bookId,author))
+    con.commit()
+
+def deleteBook(bookId):
+    """
+    Deletes a particular book entry in the "books" table along with its respective "authors" entry
+    """
+    cur.execute("""
+        delete from books
+        where book_id=?
+    """,(bookId,))
+    cur.execute("""
+        delete from authors
+        where book_id=?
+    """,(bookId,))
+
     con.commit()
 
 def printAll():
+    """
+    Prints the entire table as a grid
+    """
     output=cur.execute("select * from books")
     printTable(output)
 
+def incrementStock(bookId):
+    """
+    Increments the stock of a particular book by 1
+    """
+    cur.execute("""
+        update books 
+        set stocks=stocks+1
+        where book_id=?
+    """,(bookId,))
 
-# addRow("books",[(21,"The Jungle Book","Adventure","English",20,15,"19-08-1997","05-11-25",3,"Available")])
+def decrementStock(bookId):
+    """
+    Decrements the stock of a particular book by 1
+    """
+    cur.execute("""
+        update books 
+        set stocks=stocks-1
+        where book_id=?
+    """,(bookId,))
 
-printAll()
+def setStock(bookId,value):
+    """
+    Sets the stock of a particular book to a certain value
+    """
+    cur.execute("""
+        update books 
+        set stocks=?
+        where book_id=?
+    """,(value,bookId))
+
+def getAuthor(bookId):
+    """
+    Returns the author for a particular book
+    """
+    cur.execute("""
+        select name from authors
+        where book_id=?
+    """,(bookId,))
+    return cur.fetchall()
 
