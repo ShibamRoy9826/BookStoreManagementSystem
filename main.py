@@ -3,13 +3,15 @@ from tabulate import tabulate
 
 con = sqlite3.connect("data.db")
 cur = con.cursor()
-maxWidthPerCol=10
+maxWidthPerCol=30 # for the column trim functionality
 
+# Functions
 def createTable():
     """
     Creates required tables, namely books and authors.
     We kept them in 2 different tables so that we can store multiple authors for the same book.
     """
+
     cur.execute("""
         create table 
             books(
@@ -20,8 +22,7 @@ def createTable():
                 price float,
                 publish_year date,
                 added_date date,
-                stocks integer,
-                status text
+                stocks integer
             )
     """)
 
@@ -44,27 +45,27 @@ def addData():
 
     # the data is AI generated, so it could be wrong, but who cares
     cur.execute("""
-    INSERT INTO books (title, genre, language, price, publish_year, added_date, stocks, status)
+    INSERT INTO books (title, genre, language, price, publish_year, added_date, stocks)
     VALUES
-    ('To Kill a Mockingbird', 'Fiction', 'English',  12.99, '1960-07-11', '2025-11-01', 10, 'Available'),
-    ('1984', 'Dystopian', 'English',  10.50, '1949-06-08', '2025-11-01', 8, 'Available'),
-    ('The Great Gatsby', 'Classic', 'English',  11.20, '1925-04-10', '2025-11-01', 6, 'Available'),
-    ('One Hundred Years of Solitude', 'Magical Realism', 'Spanish',  14.80, '1967-06-05', '2025-11-01', 5, 'Available'),
-    ('The Catcher in the Rye', 'Classic', 'English', 9.99, '1951-07-16', '2025-11-01', 4, 'Available'),
-    ('Pride and Prejudice', 'Romance', 'English',  8.50, '1813-01-28', '2025-11-01', 12, 'Available'),
-    ('The Hobbit', 'Fantasy', 'English',  13.75, '1937-09-21', '2025-11-01', 15, 'Available'),
-    ('The Alchemist', 'Adventure', 'Portuguese',  10.00, '1988-04-15', '2025-11-01', 7, 'Available'),
-    ('Les Misérables', 'Historical Fiction', 'French',  15.90, '1862-03-30', '2025-11-01', 3, 'Available'),
-    ('Crime and Punishment', 'Psychological Fiction', 'Russian',  13.40, '1866-01-01', '2025-11-01', 5, 'Available'),
-    ('The Da Vinci Code', 'Thriller', 'English',  16.20, '2003-03-18', '2025-11-01', 9, 'Available'),
-    ('The Kite Runner', 'Drama', 'English',  11.80, '2003-05-29', '2025-11-01', 10, 'Available'),
-    ('Sapiens: A Brief History of Humankind', 'Non-Fiction', 'English', 18.99, '2011-06-04', '2025-11-01', 6, 'Available'),
-    ('Inferno', 'Thriller', 'English', 14.00, '2013-05-14', '2025-11-01', 7, 'Available'),
-    ('The Book Thief', 'Historical Fiction', 'English', 12.50, '2005-03-14', '2025-11-01', 8, 'Available'),
-    ('The Little Prince', 'Children', 'French', 7.80, '1943-04-06', '2025-11-01', 10, 'Available'),
-    ('A Game of Thrones', 'Fantasy', 'English', 15.00, '1996-08-06', '2025-11-01', 5, 'Available'),
-    ('Thinking, Fast and Slow', 'Psychology', 'English', 14.99, '2011-10-25', '2025-11-01', 8, 'Available'),
-    ('Norwegian Wood', 'Romance', 'Japanese', 13.50, '1987-09-04', '2025-11-01', 6, 'Available');
+    ('To Kill a Mockingbird', 'Fiction', 'English',  12.99, '1960-07-11', '2025-11-01', 10),
+    ('1984', 'Dystopian', 'English',  10.50, '1949-06-08', '2025-11-01', 8),
+    ('The Great Gatsby', 'Classic', 'English',  11.20, '1925-04-10', '2025-11-01', 6 ),
+    ('One Hundred Years of Solitude', 'Magical Realism', 'Spanish',  14.80, '1967-06-05', '2025-11-01', 5),
+    ('The Catcher in the Rye', 'Classic', 'English', 9.99, '1951-07-16', '2025-11-01', 4),
+    ('Pride and Prejudice', 'Romance', 'English',  8.50, '1813-01-28', '2025-11-01', 12),
+    ('The Hobbit', 'Fantasy', 'English',  13.75, '1937-09-21', '2025-11-01', 15),
+    ('The Alchemist', 'Adventure', 'Portuguese',  10.00, '1988-04-15', '2025-11-01', 7),
+    ('Les Misérables', 'Historical Fiction', 'French',  15.90, '1862-03-30', '2025-11-01', 3),
+    ('Crime and Punishment', 'Psychological Fiction', 'Russian',  13.40, '1866-01-01', '2025-11-01', 5),
+    ('The Da Vinci Code', 'Thriller', 'English',  16.20, '2003-03-18', '2025-11-01', 9),
+    ('The Kite Runner', 'Drama', 'English',  11.80, '2003-05-29', '2025-11-01', 10),
+    ('Sapiens: A Brief History of Humankind', 'Non-Fiction', 'English', 18.99, '2011-06-04', '2025-11-01', 6),
+    ('Inferno', 'Thriller', 'English', 14.00, '2013-05-14', '2025-11-01', 7),
+    ('The Book Thief', 'Historical Fiction', 'English', 12.50, '2005-03-14', '2025-11-01', 8),
+    ('The Little Prince', 'Children', 'French', 7.80, '1943-04-06', '2025-11-01', 10),
+    ('A Game of Thrones', 'Fantasy', 'English', 15.00, '1996-08-06', '2025-11-01', 5),
+    ('Thinking, Fast and Slow', 'Psychology', 'English', 14.99, '2011-10-25', '2025-11-01', 8),
+    ('Norwegian Wood', 'Romance', 'Japanese', 13.50, '1987-09-04', '2025-11-01', 6);
                 """)
     con.commit()
 
@@ -81,6 +82,8 @@ def printTable(data:list,cols=[],trimData=True):
             for col in row:
                 newRow.append(str(col)[:maxWidthPerCol])
             newData.append(newRow)
+    else:
+        newData=data
 
     if(len(cols)==0):
         for col in cur.description:
@@ -124,12 +127,12 @@ def deleteBook(bookId):
 
     con.commit()
 
-def printAll():
+def printAll(trimData=True):
     """
     Prints the entire table as a grid
     """
     output=cur.execute("select * from books")
-    printTable(output)
+    printTable(output,trimData=trimData)
 
 def incrementStock(bookId):
     """
@@ -170,4 +173,10 @@ def getAuthor(bookId):
         where book_id=?
     """,(bookId,))
     return cur.fetchall()
+
+
+
+# Frontend
+# To be updated
+
 
