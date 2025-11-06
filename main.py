@@ -1,5 +1,8 @@
 import sqlite3
 from tabulate import tabulate
+import os
+
+db_was_missing = not os.path.exists("./data.db")
 
 con = sqlite3.connect("data.db")
 cur = con.cursor()
@@ -34,6 +37,7 @@ def createTable():
             foreign key (book_id) references books(book_id)
         )
     """)
+
 
 
 def addData():
@@ -108,6 +112,8 @@ def addBook(data:list,authors:list):
         """,(bookId,author))
     con.commit()
 
+    green_text(f"Book added with id {bookId}.")
+
 def deleteBook(bookId):
     """
     Deletes a particular book entry in the "books" table along with its respective "authors" entry
@@ -170,9 +176,222 @@ def getAuthor(bookId):
     """,(bookId,))
     return cur.fetchall()
 
+# usage
+
+import sys
+import datetime
+
+# got these from ai **************
+ANSI_ENABLED = sys.stdout.isatty()
+def _c(s, code):
+    return f"\033[{code}m{s}\033[0m" if ANSI_ENABLED else s
+def cyangreen_text(s): print(_c(s, '1;36'))
+def yellow_text(s): print(_c(s, '0;33'))
+def green_text(s): print(_c(s, '0;32'))
+def red_text(s): print(_c(s, '0;31'))
+def pink_text(s): print(_c(s, '1;35'))
+# ******************
+
+def title(s): cyangreen_text(f"\n*** {s} ***\n")
+
+def clear_screen():
+    os.system('clear')
+
+def pause(msg="Press Entre to continue..."):
+    input(msg)
+
+def custom_input(prompt, cast=str, default=None, allow_empty=False):
+    v = input(prompt).strip()
+    if v == "" and default is not None:
+        return default
+    if v == "" and allow_empty:
+        return ""
+
+    # type checking
+    if cast == str:
+        return v
+    elif cast == int:
+        if v.isdigit():
+            return int(v)
+        else:
+            red_text("Invalid input! enter a integer!!")
+    elif cast == float:
+        # ai generated ***
+        if v.replace('.', '', 1).lstrip('-').isdigit():
+            return float(v)
+        red_text("Invalid input: expected float.")
+        # ***
+    else:
+        red_text("Invalid input")
+
+def show_book_details(book_id):
+    cur.execute("select * from books where book_id=?", (book_id,))
+    book = cur.fetchone()
+
+    if not book:
+        red_text("Book not found.")
+        return
+
+    cols = [c[0] for c in cur.description]
+    data = [book]
+
+    print()
+    pink_text("Book record:")
+
+    for col in cur.description:
+        cols.append(col[0])
+
+    print(tabulate(data, headers=cols, tablefmt="grid"))
+
+    authors = getAuthor(book_id)
+
+    if not authors:
+        red_text("No Authors found!")
+    else:
+        print("\nAuthors:")
+        for a in authors:
+            print(" -", a[0])
+
+def ui_add_book():
+    title("Add new book")
+    t = input("Title: ").strip()
+    g = input("Genre: ").strip()
+    lang = input("Language: ").strip()
+    price = custom_input("Price (e.g. 12.99): ", cast=float, default=0.0)
+    publish_year = input("Publish date (YYYY-MM-DD): ").strip() or datetime.date.today().isoformat()
+    added_date = input("Added date (YYYY-MM-DD) [default today]: ").strip() or datetime.date.today().isoformat()
+    stocks = custom_input("Initial stocks (integer): ", cast=int, default=0)
+    authors = input("Authors (comma separated): ").strip()
+    authors_list = [a.strip() for a in authors.split(",") if a.strip()]
+
+    data = [t, g, lang, price, publish_year, added_date, stocks]
+    addBook(data, authors_list)
+
+def ui_search_by_title():
+    q = input("Search title substring: ").strip()
+    output = cur.execute("select * from books where title like ?", (f"%{q}%",))
+    if not output:
+        red_text("No book with the provided title found!")
+    printTable(output)
+
+def ui_search_by_author():
+    q = input("Search author substring: ").strip()
+    output = cur.execute("""
+        select b.*
+        from books b, authors a
+        where a.book_id = b.book_id
+        and a.name like ?
+        group by b.book_id
+    """, (f"%{q}%",))
+    if not output:
+        red_text("No book with the provided title found!")
+    printTable(output)
+
+def ui_search_by_genre():
+    q = input("Genre substring: ").strip()
+    output = cur.execute("select * from books where genre like ?", (f"%{q}%",))
+    if not output:
+        red_text("No book with the provided title found!")
+    printTable(output)
+
+def ui_delete_book():
+    ID = custom_input("Book id to delete: ", cast=int)
+    cur.execute("select title from books where book_id=?", (ID,))
+    row = cur.fetchone()
+    if not row:
+        red_text("No such book.")
+        return
+    confirm = input(f"Delete '{row[0]}' (id {ID})? [y/n]: ").strip().lower()
+    if confirm == 'y':
+        deleteBook(ID)
+        green_text("Deleted.")
+    else:
+        yellow_text("Aborted.")
+
+def ui_increment_stock():
+    ID = custom_input("Book id: ", cast=int)
+    incrementStock(ID)
+    con.commit()
+    green_text("Stock incremented.")
+
+def ui_decrement_stock():
+    ID = custom_input("Book id: ", cast=int)
+    decrementStock(ID)
+    con.commit()
+    green_text("Stock decremented.")
+
+def ui_set_stock():
+    ID = custom_input("Book id: ", cast=int)
+    val = custom_input("Set stocks to: ", cast=int)
+    setStock(ID, val)
+    con.commit()
+    green_text("Stock set.")
+
+def ui_list_all(trim=True):
+    title("All books")
+    output = cur.execute("select * from books")
+    if not output:
+        red_text("No book with the provided title found!")
+    printTable(output, trimData=trim)
+
+def main_menu():
+    while True:
+        clear_screen()
+        title("BookStore — Text UI")
+        print("1) List all books")
+        print("2) View book details")
+        print("3) Add a book")
+        print("4) Delete a book")
+        print("5) Increment stock")
+        print("6) Decrement stock")
+        print("7) Set stock value")
+        print("8) Search by title")
+        print("9) Search by author")
+        print("10) Search by genre")
+        print("0) Quit")
+        print()
+        choice = input("Choose an option: ").strip()
+        if choice == '1':
+            ui_list_all()
+            pause()
+        elif choice == '2':
+            ID = custom_input("Book id: ", cast=int)
+            show_book_details(ID)
+            pause()
+        elif choice == '3':
+            ui_add_book()
+            pause()
+        elif choice == '4':
+            ui_delete_book()
+            pause()
+        elif choice == '5':
+            ui_increment_stock()
+            pause()
+        elif choice == '6':
+            ui_decrement_stock()
+            pause()
+        elif choice == '7':
+            ui_set_stock()
+            pause()
+        elif choice == '8':
+            ui_search_by_title()
+            pause()
+        elif choice == '9':
+            ui_search_by_author()
+            pause()
+        elif choice == '10':
+            ui_search_by_genre()
+            pause()
+        elif choice == '0':
+            yellow_text("Bye!")
+            break
+        else:
+            red_text("Invalid choice.")
+            pause()
 
 
-# Frontend
-# To be updated
-
+createTable()
+if db_was_missing:
+    addData() # tmp
+main_menu()
 
