@@ -13,7 +13,7 @@ def createTable():
     """
 
     cur.execute("""
-        create table 
+        create table if not exists
             books(
                 book_id integer primary key autoincrement,
                 title text,
@@ -27,7 +27,7 @@ def createTable():
     """)
 
     cur.execute("""
-    create table
+    create table if not exists
         authors(
             book_id integer,
             name text,
@@ -44,29 +44,25 @@ def addData():
     """
 
     # the data is AI generated, so it could be wrong, but who cares
-    cur.execute("""
-    INSERT INTO books (title, genre, language, price, publish_year, added_date, stocks)
-    VALUES
-    ('To Kill a Mockingbird', 'Fiction', 'English',  12.99, '1960-07-11', '2025-11-01', 10),
-    ('1984', 'Dystopian', 'English',  10.50, '1949-06-08', '2025-11-01', 8),
-    ('The Great Gatsby', 'Classic', 'English',  11.20, '1925-04-10', '2025-11-01', 6 ),
-    ('One Hundred Years of Solitude', 'Magical Realism', 'Spanish',  14.80, '1967-06-05', '2025-11-01', 5),
-    ('The Catcher in the Rye', 'Classic', 'English', 9.99, '1951-07-16', '2025-11-01', 4),
-    ('Pride and Prejudice', 'Romance', 'English',  8.50, '1813-01-28', '2025-11-01', 12),
-    ('The Hobbit', 'Fantasy', 'English',  13.75, '1937-09-21', '2025-11-01', 15),
-    ('The Alchemist', 'Adventure', 'Portuguese',  10.00, '1988-04-15', '2025-11-01', 7),
-    ('Les Misérables', 'Historical Fiction', 'French',  15.90, '1862-03-30', '2025-11-01', 3),
-    ('Crime and Punishment', 'Psychological Fiction', 'Russian',  13.40, '1866-01-01', '2025-11-01', 5),
-    ('The Da Vinci Code', 'Thriller', 'English',  16.20, '2003-03-18', '2025-11-01', 9),
-    ('The Kite Runner', 'Drama', 'English',  11.80, '2003-05-29', '2025-11-01', 10),
-    ('Sapiens: A Brief History of Humankind', 'Non-Fiction', 'English', 18.99, '2011-06-04', '2025-11-01', 6),
-    ('Inferno', 'Thriller', 'English', 14.00, '2013-05-14', '2025-11-01', 7),
-    ('The Book Thief', 'Historical Fiction', 'English', 12.50, '2005-03-14', '2025-11-01', 8),
-    ('The Little Prince', 'Children', 'French', 7.80, '1943-04-06', '2025-11-01', 10),
-    ('A Game of Thrones', 'Fantasy', 'English', 15.00, '1996-08-06', '2025-11-01', 5),
-    ('Thinking, Fast and Slow', 'Psychology', 'English', 14.99, '2011-10-25', '2025-11-01', 8),
-    ('Norwegian Wood', 'Romance', 'Japanese', 13.50, '1987-09-04', '2025-11-01', 6);
-                """)
+    """Insert 10 sample books with authors for testing."""
+    sample_books = [
+        # (title, genre, language, price, publish_year, added_date, stocks, [authors])
+        ("To Kill a Mockingbird", "Fiction", "English", 12.99, "1960-07-11", "2025-11-01", 10, ["Harper Lee"]),
+        ("1984", "Dystopian", "English", 10.50, "1949-06-08", "2025-11-01", 8, ["George Orwell"]),
+        ("The Great Gatsby", "Classic", "English", 11.20, "1925-04-10", "2025-11-01", 6, ["F. Scott Fitzgerald"]),
+        ("One Hundred Years of Solitude", "Magical Realism", "Spanish", 14.80, "1967-06-05", "2025-11-01", 5, ["Gabriel García Márquez"]),
+        ("Pride and Prejudice", "Romance", "English", 8.50, "1813-01-28", "2025-11-01", 12, ["Jane Austen"]),
+        ("The Hobbit", "Fantasy", "English", 13.75, "1937-09-21", "2025-11-01", 15, ["J.R.R. Tolkien"]),
+        ("The Alchemist", "Adventure", "Portuguese", 10.00, "1988-04-15", "2025-11-01", 7, ["Paulo Coelho"]),
+        ("The Da Vinci Code", "Thriller", "English", 16.20, "2003-03-18", "2025-11-01", 9, ["Dan Brown"]),
+        ("The Book Thief", "Historical Fiction", "English", 12.50, "2005-03-14", "2025-11-01", 8, ["Markus Zusak"]),
+        ("Good Omens", "Fantasy", "English", 13.99, "1990-05-01", "2025-11-01", 10, ["Neil Gaiman", "Terry Pratchett"]),
+    ]
+
+    for (title, genre, language, price, publish_year, added_date, stocks, authors) in sample_books:
+        data = [title, genre, language, price, publish_year, added_date, stocks]
+        addBook(data, authors)
+
     con.commit()
 
 def printTable(data:list,cols=[],trimData=True):
@@ -97,9 +93,9 @@ def addBook(data:list,authors:list):
     Additionally, it also takes an authors list, and for each author it creates a new entry in the "authors" table which use the book_id column of "books" as a foreign key.
     """
     cur.execute("""
-        insert into books (title, genre, language, price, publish_year, added_date, stocks, status)
+        insert into books (title, genre, language, price, publish_year, added_date, stocks)
         values
-        (?,?,?,?,?,?,?,?)
+        (?,?,?,?,?,?,?)
     """,data)
 
     bookId=cur.lastrowid
