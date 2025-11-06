@@ -1,15 +1,18 @@
 import sqlite3
-from tabulate import tabulate
 import os
+import sys
+import datetime
+
+from tabulate import tabulate
 
 db_was_missing = not os.path.exists("./data.db")
 
 con = sqlite3.connect("data.db")
 cur = con.cursor()
-maxWidthPerCol=30 # for the column trim functionality
+max_width_per_col=30 # for the column trim functionality
 
 # Functions
-def createTable():
+def create_table():
     """
     Creates required tables, namely books and authors.
     We kept them in 2 different tables so that we can store multiple authors for the same book.
@@ -38,7 +41,7 @@ def createTable():
         )
     """)
 
-def addData():
+def add_data():
     """
     Adds some data so that we can test these functions. NOT TO BE INCLUDED IN THE FINAL PROJECT,
     ONLY FOR TESTING PURPOSES
@@ -63,32 +66,32 @@ def addData():
 
     for (title, genre, language, price, publish_year, added_date, stocks, authors) in sample_books:
         data = [title, genre, language, price, publish_year, added_date, stocks]
-        addBook(data, authors)
+        add_book(data, authors)
 
     con.commit()
 
-def printTable(data:list,cols=[],trimData=True):
+def print_table(data:list,cols=[],trim_data=True):
     """
     if trimData is not set to False explicitly, it trims the column width so that everything is visible in the screen.
     This function basically just prints whatever data is passed to it, in the form of a table that we see in SQL.
     It uses the tabulate module to accomplish that.
     """
-    newData=[]
-    if(trimData):
+    new_data=[]
+    if(trim_data):
         for row in data:
             newRow=[]
             for col in row:
-                newRow.append(str(col)[:maxWidthPerCol])
-            newData.append(newRow)
+                newRow.append(str(col)[:max_width_per_col])
+            new_data.append(newRow)
     else:
-        newData=data
+        new_data=data
 
     if(len(cols)==0):
         for col in cur.description:
             cols.append(col[0])
-    print(tabulate(newData,headers=cols,tablefmt="grid"))
+    print(tabulate(new_data,headers=cols,tablefmt="grid"))
 
-def addBook(data:list,authors:list): 
+def add_book(data:list,authors:list): 
     """
     This function adds a new book to the "books" table.
     It takes all the data for a new row as a list, and adds that to the "books" table.
@@ -100,19 +103,19 @@ def addBook(data:list,authors:list):
         (?,?,?,?,?,?,?)
     """,data)
 
-    bookId=cur.lastrowid
+    book_id=cur.lastrowid
 
     for author in authors:
         cur.execute("""
             insert into authors (book_id, name)
             values 
             (?,?)
-        """,(bookId,author))
+        """,(book_id,author))
     con.commit()
 
-    green_text(f"Book added with id {bookId}.")
+    green_text(f"Book added with id {book_id}.")
 
-def deleteBook(bookId):
+def delete_book(bookId):
     """
     Deletes a particular book entry in the "books" table along with its respective "authors" entry
     """
@@ -127,14 +130,14 @@ def deleteBook(bookId):
 
     con.commit()
 
-def printAll(trimData=True):
+def printAll(trim_data=True):
     """
     Prints the entire table as a grid
     """
     output=cur.execute("select * from books")
-    printTable(output,trimData=trimData)
+    print_table(output,trim_data=trim_data)
 
-def incrementStock(bookId):
+def increment_stock(book_id):
     """
     Increments the stock of a particular book by 1
     """
@@ -142,9 +145,9 @@ def incrementStock(bookId):
         update books 
         set stocks=stocks+1
         where book_id=?
-    """,(bookId,))
+    """,(book_id,))
 
-def decrementStock(bookId):
+def decrement_stock(book_id):
     """
     Decrements the stock of a particular book by 1
     """
@@ -152,9 +155,9 @@ def decrementStock(bookId):
         update books 
         set stocks=stocks-1
         where book_id=?
-    """,(bookId,))
+    """,(book_id,))
 
-def setStock(bookId,value):
+def set_stock(book_id,value):
     """
     Sets the stock of a particular book to a certain value
     """
@@ -162,22 +165,19 @@ def setStock(bookId,value):
         update books 
         set stocks=?
         where book_id=?
-    """,(value,bookId))
+    """,(value,book_id))
 
-def getAuthor(bookId):
+def getAuthor(book_id):
     """
     Returns the author for a particular book
     """
     cur.execute("""
         select name from authors
         where book_id=?
-    """,(bookId,))
+    """,(book_id,))
     return cur.fetchall()
 
-# usage
-
-import sys
-import datetime
+# USAGE
 
 # got these from ai **************
 # helpers to print colourful texts if available
@@ -196,7 +196,7 @@ def title(s): cyangreen_text(f"\n*** {s} ***\n")
 def clear_screen():
     os.system('clear')
 
-def pause(msg="Press Entre to continue..."):
+def pause(msg="Press Enter to continue..."):
     input(msg)
 
 # helper to take inputs
@@ -266,7 +266,7 @@ def ui_add_book():
     authors_list = [a.strip() for a in authors.split(",") if a.strip()]
 
     data = [t, g, lang, price, publish_year, added_date, stocks]
-    addBook(data, authors_list)
+    add_book(data, authors_list)
 
 # take a guess. commenting is tough
 def ui_search_by_title():
@@ -274,7 +274,7 @@ def ui_search_by_title():
     output = cur.execute("select * from books where title like ?", (f"%{q}%",))
     if not output:
         red_text("No book with the provided title found!")
-    printTable(output)
+    print_table(output)
 
 # .....
 def ui_search_by_author():
@@ -288,7 +288,7 @@ def ui_search_by_author():
     """, (f"%{q}%",))
     if not output:
         red_text("No book with the provided author found!")
-    printTable(output)
+    print_table(output)
 
 # this function returns the meaning of life
 def ui_search_by_genre():
@@ -296,7 +296,7 @@ def ui_search_by_genre():
     output = cur.execute("select * from books where genre like ?", (f"%{q}%",))
     if not output:
         red_text("No book with the provided genre found!")
-    printTable(output)
+    print_table(output)
 
 # this function solves the problems of life
 def ui_delete_book():
@@ -308,27 +308,27 @@ def ui_delete_book():
         return
     confirm = input(f"Delete '{row[0]}' (id {ID})? [y/n]: ").strip().lower()
     if confirm == 'y':
-        deleteBook(ID)
+        delete_book(ID)
         green_text("Deleted.")
     else:
         yellow_text("Aborted.")
 
 def ui_increment_stock():
     ID = custom_input("Book id: ", cast=int)
-    incrementStock(ID)
+    increment_stock(ID)
     con.commit()
     green_text("Stock incremented.")
 
 def ui_decrement_stock():
     ID = custom_input("Book id: ", cast=int)
-    decrementStock(ID)
+    decrement_stock(ID)
     con.commit()
     green_text("Stock decremented.")
 
 def ui_set_stock():
     ID = custom_input("Book id: ", cast=int)
     val = custom_input("Set stocks to: ", cast=int)
-    setStock(ID, val)
+    set_stock(ID, val)
     con.commit()
     green_text("Stock set.")
 
@@ -338,65 +338,68 @@ def ui_list_all(trim=True):
     output = cur.execute("select * from books")
     if not output:
         red_text("No books present!!")
-    printTable(output, trimData=trim)
+    print_table(output, trim_data=trim)
 
 def main_menu():
     while True:
         clear_screen()
         title("BookStore — Text UI")
-        print("1) List all books")
-        print("2) View book details")
-        print("3) Add a book")
-        print("4) Delete a book")
-        print("5) Increment stock")
-        print("6) Decrement stock")
-        print("7) Set stock value")
-        print("8) Search by title")
-        print("9) Search by author")
-        print("10) Search by genre")
-        print("0) Quit")
-        print()
-        choice = input("Choose an option: ").strip()
-        if choice == '1':
-            ui_list_all()
-            pause()
-        elif choice == '2':
-            ID = custom_input("Book id: ", cast=int)
-            show_book_details(ID)
-            pause()
-        elif choice == '3':
-            ui_add_book()
-            pause()
-        elif choice == '4':
-            ui_delete_book()
-            pause()
-        elif choice == '5':
-            ui_increment_stock()
-            pause()
-        elif choice == '6':
-            ui_decrement_stock()
-            pause()
-        elif choice == '7':
-            ui_set_stock()
-            pause()
-        elif choice == '8':
-            ui_search_by_title()
-            pause()
-        elif choice == '9':
-            ui_search_by_author()
-            pause()
-        elif choice == '10':
-            ui_search_by_genre()
-            pause()
-        elif choice == '0':
-            yellow_text("Bye!")
-            break
-        else:
-            red_text("Invalid choice.")
-            pause()
+        print("""
+        1) List all books
+        2) View book details
+        3) Add a book
+        4) Delete a book
+        5) Increment stock
+        6) Decrement stock
+        7) Set stock value
+        8) Search by title
+        9) Search by author
+        10) Search by genre
+        0) Quit
+        """)
 
-createTable()
+        choice = input("Choose an option: ").strip()
+        match choice:
+            case '1':
+                ui_list_all()
+                pause()
+            case '2':
+                book_id = custom_input("Book id: ", cast=int)
+                show_book_details(book_id)
+                pause()
+            case '3':
+                ui_add_book()
+                pause()
+            case '4':
+                ui_delete_book()
+                pause()
+            case '5':
+                ui_increment_stock()
+                pause()
+            case '6':
+                ui_decrement_stock()
+                pause()
+            case '7':
+                ui_set_stock()
+                pause()
+            case '8':
+                ui_search_by_title()
+                pause()
+            case '9':
+                ui_search_by_author()
+                pause()
+            case '10':
+                ui_search_by_genre()
+                pause()
+            case '0':
+                yellow_text("Bye!")
+                break
+            case _:
+                red_text("Invalid choice.")
+                pause()
+
+create_table()
 if db_was_missing:
-    addData() # tmp
+    add_data() # tmp
 main_menu()
 
