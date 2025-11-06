@@ -38,8 +38,6 @@ def createTable():
         )
     """)
 
-
-
 def addData():
     """
     Adds some data so that we can test these functions. NOT TO BE INCLUDED IN THE FINAL PROJECT,
@@ -182,6 +180,7 @@ import sys
 import datetime
 
 # got these from ai **************
+# helpers to print colourful texts if available
 ANSI_ENABLED = sys.stdout.isatty()
 def _c(s, code):
     return f"\033[{code}m{s}\033[0m" if ANSI_ENABLED else s
@@ -200,6 +199,7 @@ def clear_screen():
 def pause(msg="Press Entre to continue..."):
     input(msg)
 
+# helper to take inputs
 def custom_input(prompt, cast=str, default=None, allow_empty=False):
     v = input(prompt).strip()
     if v == "" and default is not None:
@@ -213,8 +213,7 @@ def custom_input(prompt, cast=str, default=None, allow_empty=False):
     elif cast == int:
         if v.isdigit():
             return int(v)
-        else:
-            red_text("Invalid input! enter a integer!!")
+        red_text("Invalid input! enter a integer!!")
     elif cast == float:
         # ai generated ***
         if v.replace('.', '', 1).lstrip('-').isdigit():
@@ -224,6 +223,7 @@ def custom_input(prompt, cast=str, default=None, allow_empty=False):
     else:
         red_text("Invalid input")
 
+# show details of a particular book using its id
 def show_book_details(book_id):
     cur.execute("select * from books where book_id=?", (book_id,))
     book = cur.fetchone()
@@ -252,6 +252,7 @@ def show_book_details(book_id):
         for a in authors:
             print(" -", a[0])
 
+# take data, use addBook func to add book to the db
 def ui_add_book():
     title("Add new book")
     t = input("Title: ").strip()
@@ -267,6 +268,7 @@ def ui_add_book():
     data = [t, g, lang, price, publish_year, added_date, stocks]
     addBook(data, authors_list)
 
+# take a guess. commenting is tough
 def ui_search_by_title():
     q = input("Search title substring: ").strip()
     output = cur.execute("select * from books where title like ?", (f"%{q}%",))
@@ -274,6 +276,7 @@ def ui_search_by_title():
         red_text("No book with the provided title found!")
     printTable(output)
 
+# .....
 def ui_search_by_author():
     q = input("Search author substring: ").strip()
     output = cur.execute("""
@@ -284,16 +287,18 @@ def ui_search_by_author():
         group by b.book_id
     """, (f"%{q}%",))
     if not output:
-        red_text("No book with the provided title found!")
+        red_text("No book with the provided author found!")
     printTable(output)
 
+# this function returns the meaning of life
 def ui_search_by_genre():
     q = input("Genre substring: ").strip()
     output = cur.execute("select * from books where genre like ?", (f"%{q}%",))
     if not output:
-        red_text("No book with the provided title found!")
+        red_text("No book with the provided genre found!")
     printTable(output)
 
+# this function solves the problems of life
 def ui_delete_book():
     ID = custom_input("Book id to delete: ", cast=int)
     cur.execute("select title from books where book_id=?", (ID,))
@@ -327,11 +332,12 @@ def ui_set_stock():
     con.commit()
     green_text("Stock set.")
 
+# lists all the books from the db
 def ui_list_all(trim=True):
     title("All books")
     output = cur.execute("select * from books")
     if not output:
-        red_text("No book with the provided title found!")
+        red_text("No books present!!")
     printTable(output, trimData=trim)
 
 def main_menu():
@@ -388,7 +394,6 @@ def main_menu():
         else:
             red_text("Invalid choice.")
             pause()
-
 
 createTable()
 if db_was_missing:
