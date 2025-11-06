@@ -2,14 +2,14 @@ import sqlite3
 import os
 import sys
 import datetime
-
-from tabulate import tabulate
+from rich.console import Console
+from rich.table import Table
 
 db_was_missing = not os.path.exists("./data.db")
 
 con = sqlite3.connect("data.db")
 cur = con.cursor()
-max_width_per_col=30 # for the column trim functionality
+c=Console()
 
 # Functions
 def create_table():
@@ -47,7 +47,6 @@ def add_data():
     ONLY FOR TESTING PURPOSES
     And the prices are in USD, shouldn't be a problem though, cause its only for testing anyways
     """
-
     # the data is AI generated, so it could be wrong, but who cares
     """Insert 10 sample books with authors for testing."""
     sample_books = [
@@ -70,26 +69,23 @@ def add_data():
 
     con.commit()
 
-def print_table(data:list,cols=[],trim_data=True):
-    """
-    if trimData is not set to False explicitly, it trims the column width so that everything is visible in the screen.
-    This function basically just prints whatever data is passed to it, in the form of a table that we see in SQL.
-    It uses the tabulate module to accomplish that.
-    """
+def print_table(data:list,cols=[]):
     new_data=[]
-    if(trim_data):
-        for row in data:
-            newRow=[]
-            for col in row:
-                newRow.append(str(col)[:max_width_per_col])
-            new_data.append(newRow)
-    else:
-        new_data=data
+    for row in data:
+        new_data.append(list(map(str,row)))
+
+    table=Table(title="Books",style="cyan")
 
     if(len(cols)==0):
         for col in cur.description:
-            cols.append(col[0])
-    print(tabulate(new_data,headers=cols,tablefmt="grid"))
+            table.add_column(col[0])
+    else:
+        for col in cols:
+            table.add_column(col)
+
+    for point in new_data:
+        table.add_row(*point)
+    c.print(table)
 
 def add_book(data:list,authors:list): 
     """
@@ -113,7 +109,7 @@ def add_book(data:list,authors:list):
         """,(book_id,author))
     con.commit()
 
-    green_text(f"Book added with id {book_id}.")
+    c.print(f"[green] Book added with id {book_id}. [/green]")
 
 def delete_book(bookId):
     """
@@ -129,13 +125,6 @@ def delete_book(bookId):
     """,(bookId,))
 
     con.commit()
-
-def printAll(trim_data=True):
-    """
-    Prints the entire table as a grid
-    """
-    output=cur.execute("select * from books")
-    print_table(output,trim_data=trim_data)
 
 def increment_stock(book_id):
     """
@@ -167,7 +156,7 @@ def set_stock(book_id,value):
         where book_id=?
     """,(value,book_id))
 
-def getAuthor(book_id):
+def get_author(book_id):
     """
     Returns the author for a particular book
     """
@@ -179,25 +168,11 @@ def getAuthor(book_id):
 
 # USAGE
 
-# got these from ai **************
-# helpers to print colourful texts if available
-ANSI_ENABLED = sys.stdout.isatty()
-def _c(s, code):
-    return f"\033[{code}m{s}\033[0m" if ANSI_ENABLED else s
-def cyangreen_text(s): print(_c(s, '1;36'))
-def yellow_text(s): print(_c(s, '0;33'))
-def green_text(s): print(_c(s, '0;32'))
-def red_text(s): print(_c(s, '0;31'))
-def pink_text(s): print(_c(s, '1;35'))
-# ******************
+def title(s): 
+    c.print(f"[bold underline cyan] {s} [/bold underline cyan]")
 
-def title(s): cyangreen_text(f"\n*** {s} ***\n")
-
-def clear_screen():
-    os.system('clear')
-
-def pause(msg="Press Enter to continue..."):
-    input(msg)
+def pause(msg="[gray]\nPress Enter to continue...[/gray]"):
+    c.input(msg)
 
 # helper to take inputs
 def custom_input(prompt, cast=str, default=None, allow_empty=False):
@@ -213,44 +188,41 @@ def custom_input(prompt, cast=str, default=None, allow_empty=False):
     elif cast == int:
         if v.isdigit():
             return int(v)
-        red_text("Invalid input! enter a integer!!")
+        c.print("[red]Invalid input! enter a integer!![/red]")
     elif cast == float:
         # ai generated ***
         if v.replace('.', '', 1).lstrip('-').isdigit():
             return float(v)
-        red_text("Invalid input: expected float.")
+        c.print("[red]Invalid input: expected float.[/red]")
         # ***
     else:
-        red_text("Invalid input")
+        c.print("[red]Invalid input[/red]")
 
 # show details of a particular book using its id
 def show_book_details(book_id):
     cur.execute("select * from books where book_id=?", (book_id,))
     book = cur.fetchone()
-
     if not book:
-        red_text("Book not found.")
+        c.print("[red]Book not found.[/red]")
         return
 
-    cols = [c[0] for c in cur.description]
-    data = [book]
-
-    print()
-    pink_text("Book record:")
+    table=Table(title="Book record",style="yellow")
 
     for col in cur.description:
-        cols.append(col[0])
+        table.add_column(col[0])
 
-    print(tabulate(data, headers=cols, tablefmt="grid"))
+    to_str=list(map(str,book))
+    table.add_row(*to_str)
+    c.print(table)
 
-    authors = getAuthor(book_id)
+    authors = get_author(book_id)
 
     if not authors:
-        red_text("No Authors found!")
+        c.print("[red]No Authors found![/red]")
     else:
-        print("\nAuthors:")
+        c.print("[yellow]\nAuthors:[/yellow]")
         for a in authors:
-            print(" -", a[0])
+            c.print(" -", a[0])
 
 # take data, use addBook func to add book to the db
 def ui_add_book():
@@ -274,7 +246,7 @@ def ui_search_by_title():
     q = input("Search title substring: ").strip()
     output = cur.execute("select * from books where title like ?", (f"%{q}%",))
     if not output:
-        red_text("No book with the provided title found!")
+        c.print("[red]No book with the provided title found![/red]")
     print_table(output)
 
 # .....
@@ -288,7 +260,7 @@ def ui_search_by_author():
         group by b.book_id
     """, (f"%{q}%",))
     if not output:
-        red_text("No book with the provided author found!")
+        c.print("[red]No book with the provided author found![/red]")
     print_table(output)
 
 # this function returns the meaning of life
@@ -296,7 +268,7 @@ def ui_search_by_genre():
     q = input("Genre substring: ").strip()
     output = cur.execute("select * from books where genre like ?", (f"%{q}%",))
     if not output:
-        red_text("No book with the provided genre found!")
+        c.print("[red]No book with the provided genre found![/red]")
     print_table(output)
 
 # this function solves the problems of life
@@ -305,45 +277,44 @@ def ui_delete_book():
     cur.execute("select title from books where book_id=?", (ID,))
     row = cur.fetchone()
     if not row:
-        red_text("No such book.")
+        c.print("[red]No such book.[/red]")
         return
     confirm = input(f"Delete '{row[0]}' (id {ID})? [y/n]: ").strip().lower()
     if confirm == 'y':
         delete_book(ID)
-        green_text("Deleted.")
+        c.print("[green]Deleted.[/green]")
     else:
-        yellow_text("Aborted.")
+        c.print("[yellow]Aborted.[/yellow]")
 
 def ui_increment_stock():
     ID = custom_input("Book id: ", cast=int)
     increment_stock(ID)
     con.commit()
-    green_text("Stock incremented.")
+    c.print("[green]Stock incremented.[/green]")
 
 def ui_decrement_stock():
     ID = custom_input("Book id: ", cast=int)
     decrement_stock(ID)
     con.commit()
-    green_text("Stock decremented.")
+    c.print("[green]Stock decremented.[/green]")
 
 def ui_set_stock():
     ID = custom_input("Book id: ", cast=int)
     val = custom_input("Set stocks to: ", cast=int)
     set_stock(ID, val)
     con.commit()
-    green_text("Stock set.")
+    c.print("[green]Stock set.[/green]")
 
 # lists all the books from the db
-def ui_list_all(trim=True):
-    title("All books")
+def ui_list_all():
     output = cur.execute("select * from books")
     if not output:
-        red_text("No books present!!")
-    print_table(output, trim_data=trim)
+        c.print("[red]No books present!![/red]")
+    print_table(output)
 
 def main_menu():
     while True:
-        clear_screen()
+        c.clear()
         title("BookStore — Text UI")
         print("""
         1) List all books
@@ -393,14 +364,14 @@ def main_menu():
                 ui_search_by_genre()
                 pause()
             case '0':
-                yellow_text("Bye!")
+                c.print("[yellow]Bye![/yellow]")
                 break
             case _:
-                red_text("Invalid choice.")
+                c.print("[red]Invalid choice.[/red]")
                 pause()
 
 create_table()
 if db_was_missing:
-    add_data() # tmp
+    add_data() 
 main_menu()
 
