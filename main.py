@@ -254,6 +254,7 @@ def show_book_details(book_id):
 
 # take data, use addBook func to add book to the db
 def ui_add_book():
+    # TODO: add guardrails for inputting
     title("Add new book")
     t = input("Title: ").strip()
     g = input("Genre: ").strip()
