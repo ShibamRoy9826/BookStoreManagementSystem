@@ -1,0 +1,87 @@
+ManagementSystem:
+  type: Book
+  title: Book Store Management System
+  author:
+    - name: Roy
+      given-name: Ankush
+      preffix: Mr.
+    - name: Roy
+      given-name: Shibam
+      preffix: Mr.
+    - name: Saha
+      given-name: Souharda
+      preffix: Mr.
+    - name: Roy
+      given-name: Subhrangsu
+      preffix: Mr.
+    - name: Barman
+      given-name: Uday
+      preffix: Mr.
+  location: Agartala, Tripura
+  date: 2025-11-13
+  language: en
+  url: https://github.com/ShibamRoy9826/BookStoreManagementSystem
+
+lyceum-template:
+  type: Web
+  author: "Naaktgeboren, C."
+  title: "Lyceum: Academic Book Template in Typst"
+  url: https://github.com/cnaak/lyceum.typ
+  version: 0.1.0
+  date: 2024-10
+
+sumita-arora-xi:
+  type: book
+  title: "Computer Science with Python Class XI"
+  author:
+    - name: Arora
+      given-name: Sumita
+  publisher: Dhanpat Rai & Co.
+  date: 2021
+  language: en
+  url: https://www.amazon.in/Computer-Science-Python-Class-XI/dp/
+
+sumita-arora-xii:
+  type: book
+  title: "Computer Science with Python Class XII"
+  author:
+    - name: Arora
+      given-name: Sumita
+  publisher: Dhanpat Rai & Co.
+  date: 2021
+  language: en
+  url: https://www.amazon.in/Progress-Computer-Science-Python-XII/dp/
+
+python-idle:
+  type: web
+  title: "Download Python | Python.org"
+  author: "Python Software Foundation"
+  url: https://www.python.org/downloads/
+  date-accessed: 2025-11-13
+  language: en
+
+mysql:
+  type: web
+  title: "MySQL Downloads"
+  author: "Oracle Corporation"
+  url: https://dev.mysql.com/downloads/
+  date-accessed: 2025-11-13
+  language: en
+
+python-docs:
+  type: web
+  title: "Python Documentation"
+  author: "Python Software Foundation"
+  url: https://docs.python.org/3/
+  version: "3.x"
+  date-accessed: 2025-11-13
+  language: en
+
+rich-docs:
+  type: web
+  title: "Rich Documentation"
+  author: "Will McGugan"
+  url: https://rich.readthedocs.io/
+  version: "13.x"
+  date-accessed: 2025-11-13
+  language: en
